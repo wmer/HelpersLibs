@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
+    <PackageReference Include="coverlet.collector" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HelpersLib.Directories\HelpersLib.Directories.csproj" />
+    <ProjectReference Include="..\HelpersLib.Strings\HelpersLib.Strings.csproj" />
+    <ProjectReference Include="..\HelpersLibs.AspnetCore\HelpersLibs.AspnetCore.csproj" />
+    <ProjectReference Include="..\HelpersLibs.Collection\HelpersLibs.Collection.csproj" />
+    <ProjectReference Include="..\HelpersLibs.Configuration\HelpersLibs.Configuration.csproj" />
+    <ProjectReference Include="..\HelpersLibs.Excel\HelpersLibs.Excel.csproj" />
+    <ProjectReference Include="..\HelpersLibs.Extras\HelpersLibs.Extras.csproj" />
+    <ProjectReference Include="..\HelpersLibs.Reflection\HelpersLibs.Reflection.csproj" />
+    <ProjectReference Include="..\HelpersLibs.Web\HelpersLibs.Web.csproj" />
+    <ProjectReference Include="..\HelpersLibs.Windows\HelpersLibs.Windows.csproj" />
+  </ItemGroup>
+
+</Project>
