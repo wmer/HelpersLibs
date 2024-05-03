@@ -21,18 +21,25 @@ public class HttpClientHelper : IDisposable {
         _client = client;
     }
 
+
+
     public HttpClientHelper(string baseAdress) {
         var handler = new HttpClientHandler {
             ServerCertificateCustomValidationCallback = (requestMessage, certificate, chain, policyErrors) => true
         };
 
         _client = new HttpClient(handler) {
-            BaseAddress = new Uri(baseAdress)  
+            Timeout = TimeSpan.FromMinutes(30)
         };
 
-        _client.Timeout = TimeSpan.FromMinutes(30);
+        if (!string.IsNullOrEmpty(baseAdress)) {
+            _client.BaseAddress = new Uri(baseAdress);
+        }
+
         _client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true };
     }
+
+    public HttpClientHelper() : this("") {}
 
     public HttpClientHelper SetBaseAddress(string baseAdress) {
         _client.BaseAddress = new Uri(baseAdress);  
@@ -151,6 +158,20 @@ public class HttpClientHelper : IDisposable {
         } else {
             return (false, responseContent);
         }
+    }
+
+    public async Task<byte[]> GetFileAsync(string endPoint, CancellationToken cancelationToken = default) {
+        var callstr = $"{_client.BaseAddress}{endPoint}";
+        OnRequisition(this, new RequisitionEventArgs(endPoint, "GET", ""));
+
+        var fileStream = await _client.GetStreamAsync(callstr, cancelationToken);
+        byte[] buffer = new byte[16 * 1024];
+        using MemoryStream ms = new MemoryStream();
+        int read;
+        while ((read = fileStream.Read(buffer, 0, buffer.Length)) > 0) {
+            ms.Write(buffer, 0, read);
+        }
+        return ms.ToArray();
     }
 
     public async Task DownloadAsync(string endPoint, string fileToSave, CancellationToken cancelationToken = default) {

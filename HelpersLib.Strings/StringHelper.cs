@@ -276,11 +276,24 @@ namespace HelpersLib.Strings {
             return msk;
         }       
         
-        public static string AddZerosToLeftInCpfCnpj(string doc) {
+        public static string AddZerosToLeftInCpf(string doc) {
+
+            if (doc.Count() == 8) {
+                doc = $"000{doc}";
+            }
+
+            if (doc.Count() == 9) {
+                doc = $"00{doc}";
+            }
 
             if (doc.Count() == 10) {
                 doc = $"0{doc}";
             }
+
+            return doc;
+        }
+
+        public static string AddZerosToLeftInCnpj(string doc) {
 
             if (doc.Count() == 13) {
                 doc = $"0{doc}";
@@ -288,6 +301,14 @@ namespace HelpersLib.Strings {
 
             if (doc.Count() == 12) {
                 doc = $"00{doc}";
+            }
+
+            if (doc.Count() == 11) {
+                doc = $"000{doc}";
+            }
+
+            if (doc.Count() == 10) {
+                doc = $"0000{doc}";
             }
 
 
