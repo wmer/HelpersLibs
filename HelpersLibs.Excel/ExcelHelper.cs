@@ -298,6 +298,10 @@ public class ExcelHelper {
 
     public bool SaveBase<T>(IEnumerable<T> result, string workSheetName, string fileName) {
         try {
+            if (result == null || result.Count() == 0) {
+                return false;
+            }
+
             PropertyInfo[] Props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
             var indexesProps = Props.Select((Prop, Index) => new { Index, Prop })
                                         .Where(x => x.Prop.PropertyType == typeof(DateTime))
@@ -313,7 +317,6 @@ public class ExcelHelper {
             }
 
             pck.Save();
-
         } catch (Exception e) {
             Debug.WriteLine(e.Message);
             OnSaveError(this, new ExcelSaveErrorEventArgs(fileName, e.Message, e.StackTrace));
