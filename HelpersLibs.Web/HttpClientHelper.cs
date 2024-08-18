@@ -73,10 +73,14 @@ public class HttpClientHelper : IDisposable {
     }
 
     public HttpClientHelper AddBasicAuthentication(string userName, string password) {
-        var authentication = StringHelper.Base64Encode($"{userName}:{password}");
+        string authentication = CreateBasicAuthenticationToken(userName, password);
 
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authentication);
         return this;
+    }
+
+    public string CreateBasicAuthenticationToken(string userName, string password) {
+        return StringHelper.Base64Encode($"{userName}:{password}");
     }
 
     public HttpClientHelper AddBasicAuthentication(string token) {
@@ -130,6 +134,8 @@ public class HttpClientHelper : IDisposable {
 
 
     public async Task<(TResult result, string statusCode, string message, HttpResponseHeaders cabecario)> PostMultipartFormDataContentAsync<TResult>(string endPoint, MultipartFormDataContent obj) {
+        var ddd = $"{_client.BaseAddress}{endPoint}";
+
         using var response = await _client.PostAsync($"{_client.BaseAddress}{endPoint}", obj);
         string json = JsonConvert.SerializeObject(obj, Formatting.Indented);
         OnRequisition(this, new RequisitionEventArgs(endPoint, "POST", json));
@@ -138,7 +144,9 @@ public class HttpClientHelper : IDisposable {
     }
 
     public async Task<(TResult result, string statusCode, string message, HttpResponseHeaders cabecario)> PostWithFormDataAsync<TResult>(string endPoint, FormUrlEncodedContent obj) {
-        using var response = await _client.PostAsync($"{_client.BaseAddress}{endPoint}", obj);
+        var callstr = $"{_client.BaseAddress}{endPoint}";
+
+        using var response = await _client.PostAsync(callstr, obj);
         string json = JsonConvert.SerializeObject(obj, Formatting.Indented);
         OnRequisition(this, new RequisitionEventArgs(endPoint, "POST", json));
 
@@ -240,10 +248,9 @@ public class HttpClientHelper : IDisposable {
         var xml = "";
 
         using (var sww = new StringWriter()) {
-            using (System.Xml.XmlWriter writer = System.Xml.XmlWriter.Create(sww)) {
-                serializer.Serialize(writer, obj);
-                xml = sww.ToString();
-            }
+            using System.Xml.XmlWriter writer = System.Xml.XmlWriter.Create(sww);
+            serializer.Serialize(writer, obj);
+            xml = sww.ToString();
         }
 
 

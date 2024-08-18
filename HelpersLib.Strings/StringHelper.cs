@@ -397,6 +397,16 @@ namespace HelpersLib.Strings {
             }
         }
 
+        public static string Getsha256(string str) {
+            var crypt = new System.Security.Cryptography.SHA256Managed();
+            var hash = new System.Text.StringBuilder();
+            byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(str));
+            foreach (byte theByte in crypto) {
+                hash.Append(theByte.ToString("x2"));
+            }
+            return hash.ToString();
+        }
+
         public static bool IsRepetedNumbers(string phone) {
             var isRepeted = true;
             for (int i = 0; i < phone.Count() - 1; i++) {

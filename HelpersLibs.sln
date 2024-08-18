@@ -27,6 +27,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testes", "Testes", "{91424A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperLibs.Test", "HelperLibs.Test\HelperLibs.Test.csproj", "{6AF0A2C2-E8D6-4AF6-9404-8EA9F497D9F2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{D8A2C854-8C71-4C31-99C4-43D14866F903}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptographyHelper", "..\CryptographyHelper\CryptographyHelper\CryptographyHelper.csproj", "{7A2F7B1A-74C9-4FD3-8208-5D3DD29EF407}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,12 +81,17 @@ Global
 		{6AF0A2C2-E8D6-4AF6-9404-8EA9F497D9F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6AF0A2C2-E8D6-4AF6-9404-8EA9F497D9F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6AF0A2C2-E8D6-4AF6-9404-8EA9F497D9F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A2F7B1A-74C9-4FD3-8208-5D3DD29EF407}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A2F7B1A-74C9-4FD3-8208-5D3DD29EF407}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A2F7B1A-74C9-4FD3-8208-5D3DD29EF407}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A2F7B1A-74C9-4FD3-8208-5D3DD29EF407}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6AF0A2C2-E8D6-4AF6-9404-8EA9F497D9F2} = {91424A64-1495-4833-A952-A0B71A393118}
+		{7A2F7B1A-74C9-4FD3-8208-5D3DD29EF407} = {D8A2C854-8C71-4C31-99C4-43D14866F903}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BD074CD3-B3ED-4566-939A-8FE4178A9160}

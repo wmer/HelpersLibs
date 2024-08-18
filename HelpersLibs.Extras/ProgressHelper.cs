@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace HelpersLibs.Extras;
 public class ProgressHelper {
-
     public static double CalculeProgress(double actualLine, double totalLines) {
         var razao = (double)actualLine / (double)totalLines;
         var percent = razao * 100;

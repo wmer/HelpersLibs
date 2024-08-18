@@ -6,6 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\CryptographyHelper\CryptographyHelper\CryptographyHelper.csproj" />
+    <ProjectReference Include="..\HelpersLib.Strings\HelpersLib.Strings.csproj" />
+  </ItemGroup>
+
 
 
 </Project>

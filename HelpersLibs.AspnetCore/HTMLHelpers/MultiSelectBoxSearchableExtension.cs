@@ -58,7 +58,7 @@ public static class MultiSelectBoxSearchableExtension {
                 }
 
                 using var dropBoxItem = ParseHTML(dropBoxItemHTML);
-                itnsList = SetCheckBox(itnsList, dropBoxItem, bindingPrincipal.Binding, labelTxt, value, value?.ToString(), bindingPrincipal.SeletedItens);
+                itnsList = SetCheckBox(itnsList, dropBoxItem, bindingPrincipal?.Binding, labelTxt, value, value?.ToString(), bindingPrincipal?.SeletedItens);
 
                 if (extraBindings != null && extraBindings.Count() > 0) {
                     foreach (var extraBinding in extraBindings) {
