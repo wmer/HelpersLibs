@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace HelpersLibs.Extras;
 public class BaseEnviadosCheckAndFactory {
     private TextInfo myTI;
-    private Decryptor _decryptor;
+    private Decryptor _decryptor; 
     private readonly string key = "QG*¨@)*A13JkjjdD";
     private readonly string iniVector = "819GDDH@#@%3Hhds";
 

@@ -11,6 +11,4 @@
     <ProjectReference Include="..\HelpersLib.Strings\HelpersLib.Strings.csproj" />
   </ItemGroup>
 
-
-
 </Project>

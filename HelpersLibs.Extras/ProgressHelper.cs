@@ -13,4 +13,4 @@ public class ProgressHelper {
 
         return percent;
     }
-}
+} 

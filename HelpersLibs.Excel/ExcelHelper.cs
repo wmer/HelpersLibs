@@ -320,8 +320,11 @@ public class ExcelHelper {
         } catch (Exception e) {
             Debug.WriteLine(e.Message);
             OnSaveError(this, new ExcelSaveErrorEventArgs(fileName, e.Message, e.StackTrace));
+
+            return false;
         }
 
+        Console.WriteLine($"{fileName} Salvo com sucesoo!");
         return true;
     }
 

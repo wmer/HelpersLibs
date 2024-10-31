@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace HelpersLibs.AspnetCore.Helpers; 
-public class FormFileHelper {
+public class FormFileHelper { 
     public static async Task<byte[]> GetByteArray(IFormFile formFile) {
         byte[] file = null;
 

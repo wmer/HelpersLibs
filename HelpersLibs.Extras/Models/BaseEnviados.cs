@@ -12,7 +12,7 @@ public class BaseEnviados {
     public string? NomeRegua { get; set; }
     public string? Canal { get; set; }
     public string? Mensagem { get; set; }
-    public string? NumeroFatura { get; set; }
+    public string? NumeroFatura { get; set; } 
     public string? NumeroContrato { get; set; }
     public string? IdCliente { get; set; }
     public string? Contato { get; set; }

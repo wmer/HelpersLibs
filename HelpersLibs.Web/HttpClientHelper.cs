@@ -123,7 +123,19 @@ public class HttpClientHelper : IDisposable {
 
         OnRequisition(this, new RequisitionEventArgs(endPoint, "GET", ""));
         return await DeserializeResponseAsync<TResult>(response);
+    }
 
+    public async Task<(TResult result, string statusCode, string message, HttpResponseHeaders cabecario)> PostRequestAsync<T, TResult>(string endPoint, T obj) {
+        var callstr = $"{_client.BaseAddress}{endPoint}";
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, callstr);
+        request.Content = ObjectToHttpContent(obj, "POST", endPoint);
+        request.Content.Headers.ContentType = new MediaTypeHeaderValue(_mediaType);
+        var response = await _client.SendAsync(request);
+
+
+        OnRequisition(this, new RequisitionEventArgs(endPoint, "POST", ""));
+        return await DeserializeResponseAsync<TResult>(response);
     }
 
     public async Task<(TResult result, string statusCode, string message, HttpResponseHeaders cabecario)> PostAsync<T, TResult>(string endPoint, T obj) {
