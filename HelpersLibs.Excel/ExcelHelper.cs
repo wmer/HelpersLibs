@@ -1,4 +1,6 @@
-﻿using HelpersLibs.Collection;
+﻿using ClosedXML.Excel;
+using ExcelDataReader;
+using HelpersLibs.Collection;
 using HelpersLibs.Excel.DataTables;
 using HelpersLibs.Excel.Events;
 using Newtonsoft.Json;
@@ -122,18 +124,18 @@ public class ExcelHelper {
         try {
             var watchGlobal = Stopwatch.StartNew();
 
-            var fileInfo = new FileInfo(path);
+            using (var stream = File.Open(path, FileMode.Open, FileAccess.Read)) {
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                var encoding = Encoding.GetEncoding("UTF-8");
+                using var reader = ExcelReaderFactory.CreateReader(stream,
+                  new ExcelReaderConfiguration() { FallbackEncoding = encoding });
+                var result = reader.AsDataSet(new ExcelDataSetConfiguration {
+                    ConfigureDataTable = _ => new ExcelDataTableConfiguration { UseHeaderRow = hasHeader }
+                });
 
-            OnOpenStart(this, new ExcelOpenStartEventArgs(path));
-
-            using (var pck = new OfficeOpenXml.ExcelPackage()) {
-                using (var stream = File.OpenRead(path)) {
-                    pck.Load(stream);
+                if (result.Tables.Count > 0) {
+                    tbl = result.Tables[workSheet];
                 }
-
-                var ws = pck.Workbook.Worksheets[workSheet];
-
-                tbl = CreateDataTable(path, hasHeader, fileInfo, ws);
             }
 
 
@@ -296,27 +298,49 @@ public class ExcelHelper {
     }
 
 
-    public bool SaveBase<T>(IEnumerable<T> result, string workSheetName, string fileName) {
+    public bool SaveBase<T>(IEnumerable<T> result, string workSheetName, string fileName, bool primityveData = false) {
         try {
             if (result == null || result.Count() == 0) {
                 return false;
             }
 
-            PropertyInfo[] Props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            var indexesProps = Props.Select((Prop, Index) => new { Index, Prop })
-                                        .Where(x => x.Prop.PropertyType == typeof(DateTime))
-                                        .Select(x => x.Index + 1).ToArray();
+            var wb = new XLWorkbook();
+            var ws = wb.Worksheets.Add(workSheetName);
 
-            DataTable dt = result.ToDataTable();
+            if (!primityveData) {
+                PropertyInfo[] Props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                List<string> headerNames = Props.Select(prop => prop.Name).ToList();
+                var indexesProps = Props.Select((Prop, Index) => new { Index, Prop })
+                                            .Where(x => x.Prop.PropertyType == typeof(DateTime))
+                                            .Select(x => x.Index + 1).ToArray();
 
-            using ExcelPackage pck = new ExcelPackage(new FileInfo(fileName));
-            ExcelWorksheet ws = pck.Workbook.Worksheets.Add(workSheetName);
-            ws.Cells["A1"].LoadFromDataTable(dt, true);
-            for (var i = 0; i < indexesProps.Length; i++) {
-                ws.Column(indexesProps[i]).Style.Numberformat.Format = "dd/MM/yyyy";
+                for (int i = 0; i < headerNames.Count; i++) {
+                    ws.Cell(1, i + 1).Value = headerNames[i];
+                }
+
+                ws.Cell(2, 1).InsertData(result);
+
+                if (indexesProps != null && indexesProps.Any()) {
+                    for (var i = 0; i < indexesProps.Length; i++) {
+                        ws.Column(indexesProps[i]).Style.NumberFormat.Format = "dd/MM/yyyy";
+                    }
+                }
+            }else {
+                ws.Cell(1, 1).InsertData(result);
             }
 
-            pck.Save();
+            wb.SaveAs(fileName);
+
+            //DataTable dt = result.ToDataTable();
+
+            //using ExcelPackage pck = new ExcelPackage(new FileInfo(fileName));
+            //ExcelWorksheet ws = pck.Workbook.Worksheets.Add(workSheetName);
+            //ws.Cells["A1"].LoadFromDataTable(dt, true);
+            //for (var i = 0; i < indexesProps.Length; i++) {
+            //    ws.Column(indexesProps[i]).Style.Numberformat.Format = "dd/MM/yyyy";
+            //}
+
+            //pck.Save();
         } catch (Exception e) {
             Debug.WriteLine(e.Message);
             OnSaveError(this, new ExcelSaveErrorEventArgs(fileName, e.Message, e.StackTrace));
@@ -330,10 +354,15 @@ public class ExcelHelper {
 
     public bool SaveBase(DataTable dt, string workSheetName, string fileName) {
         try {
-            using ExcelPackage pck = new ExcelPackage(new FileInfo(fileName));
-            ExcelWorksheet ws = pck.Workbook.Worksheets.Add(workSheetName);
-            ws.Cells["A1"].LoadFromDataTable(dt, true);
-            pck.Save();
+
+            var wb = new XLWorkbook();
+            var ws = wb.Worksheets.Add(dt, workSheetName);
+            wb.SaveAs(fileName);
+
+            //using ExcelPackage pck = new ExcelPackage(new FileInfo(fileName));
+            //ExcelWorksheet ws = pck.Workbook.Worksheets.Add(workSheetName);
+            //ws.Cells["A1"].LoadFromDataTable(dt, true);
+            //pck.Save();
 
             Console.WriteLine($"{fileName} Salvo com sucesso!");
         } catch (Exception e) {
