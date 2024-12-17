@@ -305,6 +305,10 @@ public class ExcelHelper {
             }
 
             var wb = new XLWorkbook();
+            if (File.Exists(fileName)) {
+                wb = new XLWorkbook(fileName);
+            }
+
             var ws = wb.Worksheets.Add(workSheetName);
 
             if (!primityveData) {
@@ -314,11 +318,23 @@ public class ExcelHelper {
                                             .Where(x => x.Prop.PropertyType == typeof(DateTime))
                                             .Select(x => x.Index + 1).ToArray();
 
+                if (result is IEnumerable<Dictionary<string,object>>) {
+                    var list = (IEnumerable<Dictionary<string, object>>)result;
+
+                    headerNames = list.FirstOrDefault().Select(prop => prop.Key).ToList();
+
+                     indexesProps = list.FirstOrDefault().Select((Prop, Index) => new { Index, Prop.Value })
+                                        .Where(x => x.Value is DateTime)
+                                        .Select(x => x.Index + 1).ToArray();
+                }
+
+
                 for (int i = 0; i < headerNames.Count; i++) {
                     ws.Cell(1, i + 1).Value = headerNames[i];
                 }
 
                 ws.Cell(2, 1).InsertData(result);
+                ws.Columns().AdjustToContents();
 
                 if (indexesProps != null && indexesProps.Any()) {
                     for (var i = 0; i < indexesProps.Length; i++) {
