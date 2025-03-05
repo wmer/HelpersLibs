@@ -47,17 +47,18 @@ public class HttpClientHelper : IDisposable {
         return this;
     }
 
-    public HttpClientHelper AddcontentType(string mediaTypeHeader = "application/json", string charset = "utf-8", bool withoutalidation = false) {
+    public HttpClientHelper AddcontentType(string mediaTypeHeader = "application/json", string charset = "utf-8", bool withoutalidation = false, bool onHeader = true) {
         _mediaType = mediaTypeHeader;
 
-        if (withoutalidation) {
-            return AddCustomHeaders("Content-Type", $"{mediaTypeHeader}; charset={charset}");
+        if (onHeader) {
+            if (withoutalidation) {
+                return AddCustomHeaders("Content-Type", $"{mediaTypeHeader}; charset={charset}");
+            }
+
+            var mediaType = new MediaTypeWithQualityHeaderValue(mediaTypeHeader);
+            mediaType.CharSet = charset;
+            _client.DefaultRequestHeaders.Accept.Add(mediaType);
         }
-
-        var mediaType = new MediaTypeWithQualityHeaderValue(mediaTypeHeader);
-        mediaType.CharSet = charset;
-        _client.DefaultRequestHeaders.Accept.Add(mediaType);
-
 
         return this;
     }
