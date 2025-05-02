@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 namespace HelpersLibs.Excel;
 public class ExcelHelper {
     public ExcelHelper() {
-        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        ExcelPackage.License.SetNonCommercialOrganization("4C Digital");
     }
 
     public event ExcelOpenStartEventHandler OpenStart;

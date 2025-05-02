@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace HelpersLib.Strings {
     public class StringHelper {
@@ -573,6 +574,17 @@ namespace HelpersLib.Strings {
             var value = double.Parse(valor);
 
             return value;
+        }
+
+        public static bool IsValidXml(string xmlContent) {
+            try {
+                using XmlReader reader = XmlReader.Create(new System.IO.StringReader(xmlContent));
+                while (reader.Read()) { } // Só percorre para checar se é válido
+                return true;
+            } catch (XmlException ex) {
+                Console.WriteLine($"Erro no XML: {ex.Message}");
+                return false;
+            }
         }
     }
 }
