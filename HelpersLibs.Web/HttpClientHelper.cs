@@ -251,7 +251,7 @@ public class HttpClientHelper : IDisposable {
     private HttpContent SerializeJson(object obj, string contentType, string verb, string endpoint) {
         string json = JsonConvert.SerializeObject(obj, Formatting.Indented);
         
-        OnRequisition(this, new RequisitionEventArgs(endpoint, verb, json));
+        OnRequisition(this, new RequisitionEventArgs(endpoint, verb, json)); 
 
         return new StringContent(json, Encoding.UTF8, contentType);
     }

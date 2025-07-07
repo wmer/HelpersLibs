@@ -32,7 +32,7 @@ namespace HelpersLib.Strings {
 
         public static string GetOnlyPositiveNumbers(String str) {
             if (!string.IsNullOrEmpty(str)) {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 foreach (char c in str) {
                     if ((c >= '0' && c <= '9')) {
                         sb.Append(c);
