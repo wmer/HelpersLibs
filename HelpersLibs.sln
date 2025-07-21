@@ -31,6 +31,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptographyHelper", "..\CryptographyHelper\CryptographyHelper\CryptographyHelper.csproj", "{7A2F7B1A-74C9-4FD3-8208-5D3DD29EF407}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelpersLibs.WebScraping", "HelpersLibs.WebScraping\HelpersLibs.WebScraping.csproj", "{240792D1-9B33-48BB-B09B-78A0CF025284}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,10 @@ Global
 		{7A2F7B1A-74C9-4FD3-8208-5D3DD29EF407}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A2F7B1A-74C9-4FD3-8208-5D3DD29EF407}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A2F7B1A-74C9-4FD3-8208-5D3DD29EF407}.Release|Any CPU.Build.0 = Release|Any CPU
+		{240792D1-9B33-48BB-B09B-78A0CF025284}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{240792D1-9B33-48BB-B09B-78A0CF025284}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{240792D1-9B33-48BB-B09B-78A0CF025284}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{240792D1-9B33-48BB-B09B-78A0CF025284}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
