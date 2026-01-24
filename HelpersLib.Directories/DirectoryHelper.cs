@@ -1,9 +1,15 @@
 ﻿namespace HelpersLib.Directories; 
 public class DirectoryHelper {
 
-    public string CreateDirectory(string folderName, string? path = null) {
-        if (string.IsNullOrEmpty(path)) {
+    public static string CreateDirectoryInDesktop(string folderName) => CreateDirectory(folderName);
+
+    public static string CreateDirectory(string folderName, string? path = null, bool local = false) {
+        if (string.IsNullOrEmpty(path) && !local) {
             path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        }
+
+        if (local) {
+            path = Environment.CurrentDirectory;
         }
 
         path = $"{path}\\{folderName}";
@@ -15,7 +21,7 @@ public class DirectoryHelper {
         return path;
     }
 
-    public void LimparDiretorio(string path, DateTime? untilTheDate = null) {
+    public static void LimparDiretorio(string path, DateTime? untilTheDate = null) {
         if (!Directory.Exists(path)) {
             Directory.CreateDirectory(path);
         }

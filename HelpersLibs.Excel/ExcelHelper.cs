@@ -1,10 +1,12 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using ExcelDataReader;
 using HelpersLibs.Collection;
 using HelpersLibs.Excel.DataTables;
 using HelpersLibs.Excel.Events;
 using Newtonsoft.Json;
 using OfficeOpenXml;
+using System;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
@@ -119,8 +121,12 @@ public class ExcelHelper {
 
     }
 
-    public DataTable GetDataTableFromExcel(string path, int workSheet = 0, bool hasHeader = true) {
-        DataTable tbl = new DataTable();
+    public DataTable GetDataTableFromExcel(string path, int workSheet = 0, bool hasHeader = true) {       
+        DataTable tbl = new();
+        if (string.IsNullOrEmpty(path) || !File.Exists(path)) {
+            return tbl;
+        }
+
         try {
             var watchGlobal = Stopwatch.StartNew();
 
@@ -238,7 +244,7 @@ public class ExcelHelper {
         return tbl;
     }
 
-    public DataTable GetDataTableFromCSV(string fileName, int workSheet = 0, bool hasHeader = true, char separator = ',') {
+    public DataTable GetDataTableFromCSV(string fileName, int workSheet = 0, bool hasHeader = true, char separator = ';') {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         DataTable dt = new DataTable();
         try {
@@ -248,38 +254,22 @@ public class ExcelHelper {
                 var fileInfo = new FileInfo(fileName);
                 OnOpenStart(this, new ExcelOpenStartEventArgs(fileName));
 
-                StreamReader file = new StreamReader(fileName, System.Text.Encoding.GetEncoding(1250));
-                var lines = file.ReadToEnd().Split(['\n']);
-                var totalLines = lines.Count();
-
-                StreamReader sr = new StreamReader(fileName, System.Text.Encoding.GetEncoding(1250));
-                string[] headers = sr.ReadLine().Split(separator);
-
-                var h = 0;
-                foreach (string header in headers) {
-                    dt.Columns.Add(hasHeader ? header.Trim() : $"column{h}");
-                    h++;
-                }
+                StreamReader file = new(fileName, Encoding.GetEncoding(1250));
+                var totalLines = File.ReadAllLines(fileName).Length;
+                var linha = file.ReadLine().AsSpan();
+                AddCollumns(hasHeader, separator, dt, linha);
 
                 var l = 0;
-
-                while (!sr.EndOfStream) {
+                while (!file.EndOfStream) {
                     try {
-                        string[] rows = Regex.Split(sr.ReadLine(), $"{separator}(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-                        DataRow dr = dt.NewRow();
-                        for (int i = 0; i < headers.Length; i++) {
-                            var collum = dt.Columns[i].ColumnName;
-                            dr[i] = rows[i].Trim();
-                        }
-                        dt.Rows.Add(dr);
+                        linha = file.ReadLine().AsSpan();
+                        AddRow(separator, dt, linha);
 
-                        var razao = (double)l / (double)totalLines;
-                        var percent = razao * 100;
+                        //var razao = (double)l / (double)totalLines;
+                        //var percent = razao * 100;
+                        //percent = Math.Round(percent, 2);
 
-                        percent = Math.Round(percent, 2);
-
-
-                        OnOpenProgress(this, new ExcelOpenProgressEventArgs(fileName, totalLines, l, $"Abrindo {fileInfo.Name} {percent}% concluido ..."));
+                        //OnOpenProgress(this, new ExcelOpenProgressEventArgs(fileName, totalLines, l, $"Abrindo {fileInfo.Name} {percent}% concluido ..."));
                     } catch (Exception e) {
                         Debug.WriteLine(e.Message);
                         OnOpenError(this, new ExcelOpenErrorEventArgs(fileName, e.Message, e.StackTrace));
@@ -297,6 +287,45 @@ public class ExcelHelper {
         return dt;
     }
 
+    private static void AddRow(char separator, DataTable dt, ReadOnlySpan<char> linha) {
+        int inicio = 0;
+        var c = 0;
+
+        DataRow dr = dt.NewRow();
+        for (int j = 0; j <= linha.Length; j++) {
+            if (j == linha.Length || linha[j] == separator) {
+                try {
+                    var collumnValue = linha.Slice(inicio, j - inicio);
+                    dr[c] = collumnValue.ToString().Trim();
+                    c++;
+                    inicio = j + 1;
+                } catch (Exception e) {
+                    Debug.WriteLine(e.Message);
+                }
+
+            }
+        }
+        dt.Rows.Add(dr);
+    }
+
+    private static void AddCollumns(bool hasHeader, char separator, DataTable dt, ReadOnlySpan<char> linha) {
+        var inicioV = 0;
+        var cll = 0;
+
+        for (int j = 0; j <= linha.Length; j++) {
+            if (j == linha.Length || linha[j] == separator) {
+                try {
+                    var collumnValue = linha.Slice(inicioV, j - inicioV);
+                    dt.Columns.Add(hasHeader ? collumnValue.ToString().Trim() : $"column{cll}");
+                    cll++;
+                    inicioV = j + 1;
+                } catch (Exception e) {
+                    Console.WriteLine(e.Message);
+                }
+
+            }
+        }
+    }
 
     public bool SaveBase<T>(IEnumerable<T> result, string workSheetName, string fileName, bool primityveData = false) {
         try {
@@ -318,14 +347,14 @@ public class ExcelHelper {
                                             .Where(x => x.Prop.PropertyType == typeof(DateTime))
                                             .Select(x => x.Index + 1).ToArray();
 
-                if (result is IEnumerable<Dictionary<string,object>>) {
+                if (result is IEnumerable<Dictionary<string, object>>) {
                     var list = (IEnumerable<Dictionary<string, object>>)result;
 
                     headerNames = list.FirstOrDefault().Select(prop => prop.Key).ToList();
 
-                     indexesProps = list.FirstOrDefault().Select((Prop, Index) => new { Index, Prop.Value })
-                                        .Where(x => x.Value is DateTime)
-                                        .Select(x => x.Index + 1).ToArray();
+                    indexesProps = list.FirstOrDefault().Select((Prop, Index) => new { Index, Prop.Value })
+                                       .Where(x => x.Value is DateTime)
+                                       .Select(x => x.Index + 1).ToArray();
                 }
 
 
@@ -341,7 +370,7 @@ public class ExcelHelper {
                         ws.Column(indexesProps[i]).Style.NumberFormat.Format = "dd/MM/yyyy";
                     }
                 }
-            }else {
+            } else {
                 ws.Cell(1, 1).InsertData(result);
             }
 

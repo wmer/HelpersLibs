@@ -5,9 +5,9 @@ using System.Text.Json;
 namespace HelpersLibs.Collection;
 public class PaginatedList<T> {
     [JsonProperty("PageIndex")]
-    public int PageIndex { get; private set; }
+    public int PageIndex { get; set; }
     [JsonProperty("TotalPages")]
-    public int TotalPages { get; private set; }
+    public int TotalPages { get; set; }
     [JsonProperty("Source")]
     public List<T> Source { get; set; }
 

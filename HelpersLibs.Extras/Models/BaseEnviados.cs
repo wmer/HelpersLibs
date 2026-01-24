@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace HelpersLibs.Extras.Models;
+
 public class BaseEnviados {
     public string? Name { get; set; }
     public byte[]? File { get; set; }
@@ -12,7 +13,7 @@ public class BaseEnviados {
     public string? NomeRegua { get; set; }
     public string? Canal { get; set; }
     public string? Mensagem { get; set; }
-    public string? NumeroFatura { get; set; } 
+    public string? NumeroFatura { get; set; }
     public string? NumeroContrato { get; set; }
     public string? IdCliente { get; set; }
     public string? Contato { get; set; }
@@ -43,4 +44,6 @@ public class BaseEnviados {
     public int? ClienteId { get; set; }
     public string? DesContr { get; set; }
     public string? Credor { get; set; }
-} 
+    public string? ValorMedia { get; set; }
+    public string? Pedra { get; set; }
+}

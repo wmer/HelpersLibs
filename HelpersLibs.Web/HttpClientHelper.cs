@@ -29,7 +29,8 @@ public class HttpClientHelper : IDisposable {
         };
 
         _client = new HttpClient(handler) {
-            Timeout = TimeSpan.FromMinutes(30)
+            Timeout = TimeSpan.FromMinutes(30),
+            MaxResponseContentBufferSize = int.MaxValue
         };
 
         if (!string.IsNullOrEmpty(baseAdress)) {
@@ -149,8 +150,12 @@ public class HttpClientHelper : IDisposable {
     public async Task<(TResult result, string statusCode, string message, HttpResponseHeaders cabecario)> PostMultipartFormDataContentAsync<TResult>(string endPoint, MultipartFormDataContent obj) {
         var ddd = $"{_client.BaseAddress}{endPoint}";
 
-        using var response = await _client.PostAsync($"{_client.BaseAddress}{endPoint}", obj);
-        string json = JsonConvert.SerializeObject(obj, Formatting.Indented);
+        using var response = await _client.PostAsync($"{_client.BaseAddress}{endPoint}", obj); 
+        var settings = new JsonSerializerSettings {
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
+        string json = JsonConvert.SerializeObject(obj, Formatting.Indented, settings);
         OnRequisition(this, new RequisitionEventArgs(endPoint, "POST", json));
 
         return await DeserializeResponseAsync<TResult>(response);
@@ -160,7 +165,11 @@ public class HttpClientHelper : IDisposable {
         var callstr = $"{_client.BaseAddress}{endPoint}";
 
         using var response = await _client.PostAsync(callstr, obj);
-        string json = JsonConvert.SerializeObject(obj, Formatting.Indented);
+        var settings = new JsonSerializerSettings {
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
+        string json = JsonConvert.SerializeObject(obj, Formatting.Indented, settings);
         OnRequisition(this, new RequisitionEventArgs(endPoint, "POST", json));
 
         return await DeserializeResponseAsync<TResult>(response);
@@ -200,8 +209,8 @@ public class HttpClientHelper : IDisposable {
         OnRequisition(this, new RequisitionEventArgs(endPoint, "GET", ""));
 
         var fileStream = await _client.GetStreamAsync(callstr, cancelationToken);
-        using FileStream outputFileStream = new FileStream(fileToSave, FileMode.CreateNew);
-        await fileStream.CopyToAsync(outputFileStream);
+        using FileStream outputFileStream = new(fileToSave, FileMode.CreateNew);
+        await fileStream.CopyToAsync(outputFileStream, cancelationToken);
     }
 
     public async Task DownloadAsync<T>(string endPoint, T obj, string fileToSave) {
@@ -240,7 +249,11 @@ public class HttpClientHelper : IDisposable {
     }
 
     private HttpContent FormUrlCOntent(object obj, string verb, string endpoint) {
-        string json = JsonConvert.SerializeObject(obj, Formatting.Indented);
+        var settings = new JsonSerializerSettings {
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
+        string json = JsonConvert.SerializeObject(obj, Formatting.Indented, settings);
         OnRequisition(this, new RequisitionEventArgs(endpoint, verb, json));
 
         var dic = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
@@ -249,9 +262,13 @@ public class HttpClientHelper : IDisposable {
     }
 
     private HttpContent SerializeJson(object obj, string contentType, string verb, string endpoint) {
-        string json = JsonConvert.SerializeObject(obj, Formatting.Indented);
+        var settings = new JsonSerializerSettings {
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
+        string json = JsonConvert.SerializeObject(obj, Formatting.Indented, settings);
         
-        OnRequisition(this, new RequisitionEventArgs(endpoint, verb, json)); 
+        OnRequisition(this, new RequisitionEventArgs(endpoint, verb, json));   
 
         return new StringContent(json, Encoding.UTF8, contentType);
     }

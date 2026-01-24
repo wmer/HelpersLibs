@@ -62,29 +62,26 @@ namespace HelpersLib.Strings {
         }
 
         public static int[] GetNumbers(String str) {
-            if (!string.IsNullOrEmpty(str)) {
-                var matches = Regex.Matches(str, @"-?\d+");
+            if (string.IsNullOrEmpty(str)) return [];
 
-                int[] numbers = matches.Select(x => int.Parse(x.ToString())).ToArray();
-                return numbers;
-            }
+            var matches = Regex.Matches(str, @"-?\d+");
 
-            return null;
+            int[] numbers = matches.Select(x => int.Parse(x.ToString())).ToArray();
+            return numbers;
         }
 
         public static string RemoveSpecialCharacters(String str, string except = "") {
-            if (!string.IsNullOrEmpty(str)) {
-                var cents = "ÁáÀàÃãÂâÉéÈèêÊÍíìÌÎîÓóÒòÔôÕõÚúÙùÛûÜüäÄËëÏïÖöÇç";
-                StringBuilder sb = new StringBuilder();
-                foreach (char c in str) {
-                    if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || cents.Contains(c) || c == ' ' || c == '\r' || c == '\n' || except.Contains(c)) {
-                        sb.Append(c);
-                    }
-                }
-                return sb.ToString();
-            }
+            if (string.IsNullOrEmpty(str)) return string.Empty;
 
-            return string.Empty;
+            var cents = "ÁáÀàÃãÂâÉéÈèêÊÍíìÌÎîÓóÒòÔôÕõÚúÙùÛûÜüäÄËëÏïÖöÇç";
+            StringBuilder sb = new StringBuilder();
+            foreach (char c in str) {
+                if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || cents.Contains(c) || c == ' ' || c == '\r' || c == '\n' || except.Contains(c)) {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString();
+
         }
 
         public static string RemoveAccents(string str) {
@@ -275,9 +272,10 @@ namespace HelpersLib.Strings {
             }
 
             return msk;
-        }       
-        
+        }
+
         public static string AddZerosToLeftInCpf(string doc) {
+            if (string.IsNullOrEmpty(doc)) return string.Empty;
 
             if (doc.Count() == 8) {
                 doc = $"000{doc}";
@@ -525,7 +523,8 @@ namespace HelpersLib.Strings {
                 i = i == 2 ? 1 : 2;
             }
             fim = 10 - (sum % 10);
-            if (fim >= 10) { fim = 0; };
+            if (fim >= 10) { fim = 0; }
+            ;
             return fim;
         }
 

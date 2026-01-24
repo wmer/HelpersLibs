@@ -1,5 +1,7 @@
 ﻿using CryptographyHelper;
+using HelpersLib.Directories;
 using HelpersLib.Strings;
+using HelpersLibs.Excel;
 using HelpersLibs.Extras.Models;
 using System;
 using System.Collections.Generic;
@@ -10,18 +12,33 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace HelpersLibs.Extras;
-public class BaseEnviadosCheckAndFactory {
-    private TextInfo myTI;
-    private Decryptor _decryptor; 
-    private readonly string key = "QG*¨@)*A13JkjjdD";
-    private readonly string iniVector = "819GDDH@#@%3Hhds";
 
-    public BaseEnviadosCheckAndFactory() {
-        myTI = new CultureInfo("pt-BR", false).TextInfo;
-        _decryptor = new Decryptor();
+public class BaseEnviadosFactory {
+    private static TextInfo myTI = new CultureInfo("pt-BR", false).TextInfo;
+    private static Decryptor _decryptor = new Decryptor();
+    private static readonly string key = "QG*¨@)*A13JkjjdD";
+    private static readonly string iniVector = "819GDDH@#@%3Hhds";
+
+    public static (List<BaseEnviados>, int) CreateFromFile(string? rootPath = null, string? filePath = null) {
+        var path = Directory.GetFiles(rootPath ?? Environment.CurrentDirectory, "BaseEnviadas_*").FirstOrDefault();
+        var excelHelper = new ExcelHelper();
+
+        var data = excelHelper.GetDataTableFromExcel(filePath ?? path).AsEnumerable();
+
+        var list = CheckAndCreate(data);
+
+        return list;
     }
 
-    public (List<BaseEnviados>, int) CheckAndCreate(IEnumerable<DataRow> clientes) {
+    public static void MoveFile() {
+        var hoje = DateTime.Now;
+        var movePath = DirectoryHelper.CreateDirectory("Importados", local: true);
+        var file = Directory.GetFiles(Environment.CurrentDirectory, "BaseEnviadas_*").Select(x => new FileInfo(x)).FirstOrDefault();
+        File.Move(file.FullName, $"{movePath}\\{file.Name}", true);
+    }
+
+
+    private static (List<BaseEnviados>, int) CheckAndCreate(IEnumerable<DataRow> clientes) {
         var baseEnviados = new List<BaseEnviados>();
         var erros = 0;
         var provider = CultureInfo.CreateSpecificCulture("pt-BR");
@@ -75,7 +92,7 @@ public class BaseEnviadosCheckAndFactory {
                 numFatura = TryDecrypt(numFatura);
 
                 var valorFatura = contato["VALOR"].ToString()?.Trim();
-                var vencimentoFatura = StringHelper.RemoveSpecialCharacters(contato["DATA_VENC"].ToString()?.Trim(), "/-");
+                var vencimentoFatura = StringHelper.RemoveSpecialCharacters(contato["DATA_VENC"].ToString()?.Trim(), "/-:");
                 var atraso = contato["ATRASO"].ToString()?.Trim();
                 atraso = StringHelper.RemoveSpecialCharacters(atraso, "-");
                 var atrasoCLiente = int.Parse(atraso);
@@ -91,7 +108,7 @@ public class BaseEnviadosCheckAndFactory {
                 contatoVal = StringHelper.GetOnlyPositiveNumbers(contatoVal)?.Trim();
                 contatoVal = contatoVal.StartsWith("55") && contatoVal.Count() > 11 ? contatoVal.Substring(2) : contatoVal;
 
-                if (canal == "E-mail") {
+                if (canal == "E-mail" || canal == "AR-EMAIL") {
                     contatoVal = contato["EMAIL"].ToString().Trim();
                     contatoVal = TryDecrypt(contatoVal);
                 }
@@ -108,7 +125,7 @@ public class BaseEnviadosCheckAndFactory {
                     erros++;
                 }
 
-                var nomeRegua = StringHelper.RemoveSpecialCharacters(regua, ".-_-/áàãâéêèiîíìoôóòuûúùçÁÀÃÂÉÈÊIÍÌÎÓÔÒÚÙÛ");
+                var nomeRegua = StringHelper.RemoveSpecialCharacters(regua, ".-_-></áàãâéêèiîíìoôóòuûúùçÁÀÃÂÉÈÊIÍÌÎÓÔÒÚÙÛ");
                 var numFat = StringHelper.RemoveSpecialCharacters(numFatura, ".-_-/");
                 var canalStr = StringHelper.RemoveSpecialCharacters(canal, "--_");
                 var numContr = StringHelper.RemoveSpecialCharacters(numContrato, ".-_-/");
@@ -149,7 +166,9 @@ public class BaseEnviadosCheckAndFactory {
                     DesContr = SearchVariable(particularidades, "des_contr"),
                     Credor = SearchVariable(particularidades, "Credor"),
                     NomeProduto = SearchVariable(particularidades, "NomeProduto"),
-                    Prestacao = SearchVariable(particularidades, "Prestacao")
+                    Prestacao = SearchVariable(particularidades, "Prestacao"),
+                    ValorMedia = SearchVariable(particularidades, "Valor Medio"),
+                    Pedra = SearchVariable(particularidades, "Pedra")
                 });
 
             } catch (Exception e) {
@@ -161,7 +180,7 @@ public class BaseEnviadosCheckAndFactory {
         return (baseEnviados, erros);
     }
 
-    private string? TryDecrypt(string? str) {
+    private static string? TryDecrypt(string? str) {
         if (!string.IsNullOrEmpty(str) && str.StartsWith("ECPD|")) {
             var tempStr = str.Replace("ECPD|", "");
             var strDecrypted = _decryptor.Decrypt(tempStr, key, iniVector);
@@ -177,13 +196,13 @@ public class BaseEnviadosCheckAndFactory {
         if (!string.IsNullOrEmpty(particuliariades) && particuliariades.Contains("|||")) {
             var variFromParti = particuliariades.Split("|||");
             foreach (var vars in variFromParti) {
-                search = ExtractVarValue(vars, variable);
+                search = ExtractVarValue(vars, variable.Trim());
                 if (!string.IsNullOrEmpty(search)) {
                     break;
                 }
             }
-        } else if (!string.IsNullOrEmpty(particuliariades) && particuliariades.Contains(variable)) {
-            search = ExtractVarValue(particuliariades, variable);
+        } else if (!string.IsNullOrEmpty(particuliariades) && particuliariades.Contains(variable.Trim())) {
+            search = ExtractVarValue(particuliariades, variable.Trim());
         }
 
 

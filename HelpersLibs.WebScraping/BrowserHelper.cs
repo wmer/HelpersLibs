@@ -1,6 +1,7 @@
 ﻿using HelpersLibs.Windows;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Edge;
+using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,8 +10,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HelpersLibs.WebScraping; 
-public class BrowserHelper(string webDriverLocation, string browserId) {
+namespace HelpersLibs.WebScraping;
+public class BrowserHelper(string webDriverLocation, string browserId) : IDisposable {
     private readonly string _driverLocation = webDriverLocation;
     private readonly string _browserId = browserId;
 
@@ -18,40 +19,42 @@ public class BrowserHelper(string webDriverLocation, string browserId) {
     public IntPtr WindowHandler { get; private set; }
 
     public void InitBrowser(bool initHeadless = false) {
-        EdgeOptions options = DefineOptions(initHeadless);
-        WebDriver = new EdgeDriver(_driverLocation, options);
-        WebDriver.Manage().Window.Maximize();
+        try {
+            EdgeOptions options = DefineOptions(initHeadless);
+            WebDriver = new EdgeDriver(_driverLocation, options);
+            WebDriver.Manage().Window.Maximize();
 
-        if (!initHeadless) {
-            var name = $"{WebDriver.Title}_{_browserId}";
-            Console.WriteLine($"Iniciando BOT: {name}");
-            WindowHandler = GetWindowHandler(WebDriver, name);
+            if (!initHeadless) {
+                var name = $"{WebDriver.Title}_{_browserId}";
+                Console.WriteLine($"Iniciando BOT: {name}");
+                WindowHandler = GetWindowHandler(WebDriver, name);
 
-            while (WindowHandler == IntPtr.Zero) {
-                try {
-                    Console.WriteLine($"Esperando inicializar BOT!");
-                    WebDriver.Close();
+                while (WindowHandler == IntPtr.Zero) {
+                    try {
+                        Console.WriteLine($"Esperando inicializar BOT!");
+                        WebDriver.Quit();
+                        WebDriver.Dispose();
 
-                    GC.WaitForPendingFinalizers();
-                    GC.Collect();
-                    Thread.Sleep(1000);
+                        Thread.Sleep(1000);
 
-                    WebDriver = new EdgeDriver(_driverLocation, options);
-                    WebDriver.Manage().Window.Maximize();
+                        WebDriver = new EdgeDriver(_driverLocation, options);
+                        WebDriver.Manage().Window.Maximize();
 
-                    name = $"{WebDriver.Title}_{_browserId}";
-                    WindowHandler = GetWindowHandler(WebDriver, name);
-                } catch {
+                        name = $"{WebDriver.Title}_{_browserId}";
+                        WindowHandler = GetWindowHandler(WebDriver, name);
+                    } catch {
 
+                    }
                 }
+
             }
 
-        }
+            Thread.Sleep(1000);
+        } catch { }
 
-        Thread.Sleep(1000);
     }
 
-    public void Close() => WebDriver.Close();
+    public void Close() => WebDriver.Quit();
     public void Maximize() => WebDriver.Manage().Window.Maximize();
     public void Reload() {
         WebDriver.Navigate().Refresh();
@@ -78,7 +81,7 @@ public class BrowserHelper(string webDriverLocation, string browserId) {
             FirstTab();
             WebDriver.Navigate().GoToUrl(url);
             SetVInitVars();
-            while (!PageIsReady());
+            SpinWait.SpinUntil(PageIsReady, 1000);
             //GetCurrentWindowHandler();
 
             return true;
@@ -90,13 +93,6 @@ public class BrowserHelper(string webDriverLocation, string browserId) {
     public bool FirstTab() {
         try {
             WebDriver.SwitchTo().Window(WebDriver.WindowHandles.First());
-            IJavaScriptExecutor jscript = WebDriver as IJavaScriptExecutor;
-            jscript.ExecuteScript("alert('Switch tab')");
-
-            //Now you can see alert would focused on desired tab
-            //Now you can accept this alert and do further steps on this tab
-            IAlert alert = WebDriver.SwitchTo().Alert();
-            alert.Accept();
 
             return true;
         } catch (Exception e) {
@@ -115,6 +111,35 @@ public class BrowserHelper(string webDriverLocation, string browserId) {
         return ready;
     }
 
+    public bool WaitElement(By element, TimeSpan delay) {
+        var ready = false;
+
+        try {  
+            var wait = new WebDriverWait(WebDriver, delay);
+            wait.Until(d => d.FindElements(element).Count != 0);
+
+            ready = true; 
+        } catch (Exception e) {
+            Console.WriteLine("Elemento não apareceu a tempo.");
+            ready = false;
+        }
+
+        return ready;
+    }
+
+    public IWebElement? WaitAndFindElement(By element, TimeSpan delay) {
+        try {
+            if (!WaitElement(element, delay)) {
+                return null;
+            }
+
+            return WebDriver.FindElement(element);
+        } catch (Exception) {
+            Console.WriteLine("Elemento não encontrado.");
+            return null;
+        }
+    }
+
     public void SetVInitVars() {
         try {
             IJavaScriptExecutor js = (IJavaScriptExecutor)WebDriver;
@@ -124,25 +149,30 @@ public class BrowserHelper(string webDriverLocation, string browserId) {
         } catch (Exception e) { }
     }
 
-    public void ScrollPage(int interval = 1000) {
-        try {
-            var lasteHeight = ((IJavaScriptExecutor)WebDriver).ExecuteScript("return document.body.scrollHeight");
-            ((IJavaScriptExecutor)WebDriver).ExecuteScript("window.scrollTo(0, document.body.scrollHeight / 2)");
-            Thread.Sleep(interval);
-            while (true) {
-                ((IJavaScriptExecutor)WebDriver).ExecuteScript("window.scrollTo(0, document.body.scrollHeight - 150)");
-                Thread.Sleep(interval * 3);
-                var newHeight = ((IJavaScriptExecutor)WebDriver).ExecuteScript("return document.body.scrollHeight");
+    public void ScrollPageToEnd(int interval = 1000) {
+        while (!ScrollPage(interval)) ;
+    }
 
-                if (newHeight.Equals(lasteHeight)) {
-                    break;
-                } else {
-                    lasteHeight = newHeight;
-                }
+    public bool ScrollPage(int interval = 1000) {
+        var scroll = false;
+
+        try {
+            var newHeight = 0;
+            var lasteHeight = Convert.ToInt32(((IJavaScriptExecutor)WebDriver).ExecuteScript("return document.body.scrollHeight"));
+
+            ((IJavaScriptExecutor)WebDriver).ExecuteScript($"window.scrollTo(0, {lasteHeight} / 2)");
+            _ = new WebDriverWait(WebDriver, TimeSpan.FromMilliseconds(interval));
+
+            newHeight = Convert.ToInt32(((IJavaScriptExecutor)WebDriver).ExecuteScript("return document.body.scrollHeight"));
+
+            if (!newHeight.Equals(lasteHeight)) {
+                scroll = true;
             }
         } catch (Exception e) {
             Console.WriteLine($"Erro ao tentar scrollar a página: {e.Message}");
         }
+
+        return scroll;
     }
 
     public void MinimizeWindow() {
@@ -324,5 +354,12 @@ public class BrowserHelper(string webDriverLocation, string browserId) {
         }
 
         return windowsHandler;
+    }
+
+    public void Dispose() {
+        try {
+            WebDriver?.Quit();
+            WebDriver?.Dispose();
+        } catch { }
     }
 }

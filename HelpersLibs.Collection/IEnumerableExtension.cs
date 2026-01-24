@@ -9,6 +9,14 @@ public static class IEnumerableExtension {
                     .ToList();
     }
 
+    public static HashSet<HashSet<T>> SplitListToHashSet<T>(this IEnumerable<T> locations, int nSize = 30) {
+        return locations
+                    .Select((x, i) => new { Index = i, Value = x })
+                    .GroupBy(x => x.Index / nSize)
+                    .Select(x => x.Select(v => v.Value).ToHashSet())
+                    .ToHashSet();
+    }
+
     public static string TostringList(this IEnumerable<string> list, string separator = ", ", string surrounders = "") {
         var strArray = list.Select(x => $"{surrounders}{x}{surrounders}").ToArray();
         var str = string.Join(separator, strArray);
